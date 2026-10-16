@@ -23,39 +23,66 @@ HEADERS = {
 # GEOCODING
 # ============================================================
 
-@lru_cache(maxsize=100)
+
 def geocode_place(place):
+    """Find a location using multiple search variations."""
+    import requests
+    import time
 
-    params = {
-        "q": f"{place}, Hyderabad, Telangana, India",
-        "format": "jsonv2",
-        "limit": 1,
-        "countrycodes": "in"
+    aliases = {
+        "lb nagar": [
+            "L B Nagar, Hyderabad, Telangana, India",
+            "LB Nagar, Ranga Reddy, Telangana, India",
+            "Vanasthalipuram, Hyderabad, Telangana, India",
+        ],
+        "hitech city": [
+            "HITEC City, Hyderabad, Telangana, India",
+            "Madhapur, Hyderabad, Telangana, India",
+        ],
     }
 
-    response = requests.get(
-        NOMINATIM_URL,
-        params=params,
-        headers=HEADERS,
-        timeout=15
+    name = place.strip()
+    candidates = aliases.get(name.lower(), [name])
+
+    # Retry with shorter location wording if needed
+    if name.lower() not in aliases and "," in name:
+        candidates.append(name.split(",")[0] + ", Hyderabad, India")
+
+    url = "https://nominatim.openstreetmap.org/search"
+    headers = {"User-Agent": "RidelyAI/1.0 (fare prediction project)"}
+
+    for query in candidates:
+        try:
+            response = requests.get(
+                url,
+                params={
+                    "q": query,
+                    "format": "jsonv2",
+                    "limit": 1,
+                    "countrycodes": "in",
+                },
+                headers=headers,
+                timeout=10,
+            )
+            response.raise_for_status()
+            results = response.json()
+
+            if results:
+                return {
+                    "latitude": float(results[0]["lat"]),
+                    "longitude": float(results[0]["lon"]),
+                    "display_name": results[0].get("display_name", query),
+                }
+
+        except requests.RequestException:
+            continue
+
+        time.sleep(1.1)
+
+    raise ValueError(
+        f"Could not find location: {place}. "
+        "Try a nearby landmark or a shorter location name."
     )
-
-    response.raise_for_status()
-
-    results = response.json()
-
-    if not results:
-        raise ValueError(
-            f"Could not find location: {place}"
-        )
-
-    result = results[0]
-
-    return {
-        "latitude": float(result["lat"]),
-        "longitude": float(result["lon"]),
-        "display_name": result["display_name"]
-    }
 
 
 # ============================================================

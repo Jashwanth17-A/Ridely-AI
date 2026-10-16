@@ -74,46 +74,57 @@ st.write(
 st.divider()
 
 
+
 # ============================================================
 # INPUT SECTION
 # ============================================================
 
 st.header("📍 Enter Your Journey")
 
+locations = [
+    "Gachibowli, Hyderabad, Telangana, India",
+    "Hitech City, Hyderabad, Telangana, India",
+    "Madhapur, Hyderabad, Telangana, India",
+    "Kukatpally, Hyderabad, Telangana, India",
+    "Miyapur, Hyderabad, Telangana, India",
+    "Kondapur, Hyderabad, Telangana, India",
+    "Banjara Hills, Hyderabad, Telangana, India",
+    "Jubilee Hills, Hyderabad, Telangana, India",
+    "Ameerpet, Hyderabad, Telangana, India",
+    "Secunderabad, Hyderabad, Telangana, India",
+    "Mehdipatnam, Hyderabad, Telangana, India",
+    "LB Nagar, Hyderabad, Telangana, India",
+    "Rajiv Gandhi International Airport, Hyderabad, Telangana, India"
+]
+
 col1, col2 = st.columns(2)
 
 with col1:
-
-    pickup = st.text_input(
-        "Pickup Location",
-        placeholder="Example: Gachibowli"
+    pickup = st.selectbox(
+        "📍 Pickup Location",
+        locations,
+        index=0,
+        key="pickup_location"
     )
 
 with col2:
-
-    drop = st.text_input(
-        "Drop Location",
-        placeholder="Example: Hitech City"
+    drop = st.selectbox(
+        "🏁 Drop Location",
+        locations,
+        index=1,
+        key="drop_location"
     )
-
 
 ride_type = st.selectbox(
     "🚗 Ride Type",
-    [
-        "Bike",
-        "Auto",
-        "Mini",
-        "Sedan"
-    ]
+    ["Bike", "Auto", "Mini", "Sedan"]
 )
-
 
 predict_button = st.button(
     "🔮 Predict Fare",
     type="primary",
     use_container_width=True
 )
-
 
 # ============================================================
 # MAIN PROCESS
@@ -562,34 +573,65 @@ if predict_button:
         # LOCATION DETAILS
         # ====================================================
 
-        with st.expander(
-            "📍 Location details"
-        ):
+        
+        # ====================================================
+        # LOCATION DETAILS
+        # ====================================================
+
+        with st.expander("📍 Location details", expanded=True):
+
+            # Pickup information
+            st.markdown("### 🟢 Pickup Location")
 
             st.write(
-                "**Pickup:**",
-                pickup_coordinates[
-                    "display_name"
-                ]
+                "**Selected Location:**",
+                pickup
             )
 
             st.write(
-                "**Drop:**",
-                drop_coordinates[
-                    "display_name"
-                ]
+                "**Full Address:**",
+                pickup_coordinates.get("display_name", pickup)
+            )
+
+            st.write(
+                "**Coordinates:**",
+                f"{pickup_coordinates['latitude']:.5f}, "
+                f"{pickup_coordinates['longitude']:.5f}"
+            )
+
+            st.divider()
+
+            # Drop information
+            st.markdown("### 🔴 Drop Location")
+
+            st.write(
+                "**Selected Location:**",
+                drop
+            )
+
+            st.write(
+                "**Full Address:**",
+                drop_coordinates.get("display_name", drop)
+            )
+
+            st.write(
+                "**Coordinates:**",
+                f"{drop_coordinates['latitude']:.5f}, "
+                f"{drop_coordinates['longitude']:.5f}"
             )
 
 
     except Exception as e:
 
-        st.error(
-            "Unable to calculate the journey."
-        )
+        st.error("Unable to calculate the journey.")
 
-        st.exception(e)
+        with st.expander("View error details", expanded=True):
+            st.error(f"{type(e).__name__}: {e}")
+            st.exception(e)
 
 
+        
+        
 # ============================================================
 # INITIAL SCREEN
 # ============================================================

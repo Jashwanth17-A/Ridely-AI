@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import joblib
 
+import streamlit as st
 
 # ============================================================
 # PROJECT ROOT
@@ -35,10 +36,12 @@ MODEL_PATH = PROJECT_ROOT / "models" / "ml_models.joblib"
 # LOAD MODELS
 # ============================================================
 
-saved_models = joblib.load(
-    MODEL_PATH
-)
+@st.cache_resource
+def load_models():
+    return joblib.load(MODEL_PATH)
 
+
+saved_models = load_models()
 
 # ============================================================
 # FEATURE CREATION
